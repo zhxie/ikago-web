@@ -5,8 +5,10 @@ import {
   ArrowDownOutlined,
   ClockCircleOutlined,
   CheckOutlined,
+  SettingOutlined,
   WarningOutlined
 } from '@ant-design/icons';
+import ReactCountryFlag from 'react-country-flag';
 
 import './MainWindow.css';
 import logo from './assets/images/logo.png';
@@ -71,6 +73,9 @@ class MainWindow extends React.Component {
             )
           );
         }
+        local.sort((first, second) => {
+          return second.lastSeen - first.lastSeen;
+        });
         let remote = [];
         for (let node in res.monitor.remote.out) {
           remote.push(
@@ -82,12 +87,15 @@ class MainWindow extends React.Component {
             )
           );
         }
+        remote.sort((first, second) => {
+          return second.lastSeen - first.lastSeen;
+        });
 
         this.setState({
           name: res.name,
           version: res.version,
           active: true,
-          time: this.state.time + 1,
+          time: res.time,
           outbound: outbound,
           outboundTotal: outboundTotal,
           inbound: inbound,
@@ -114,6 +122,7 @@ class MainWindow extends React.Component {
   };
 
   convertTime = (time) => {
+    time = time.toFixed(0);
     const hour = Math.floor(time / 3600);
     const min = Math.floor((time - 3600 * hour) / 60);
     const second = time - 3600 * hour - 60 * min;
@@ -155,7 +164,8 @@ class MainWindow extends React.Component {
         outbound: outValue.size - stateNode.outboundTotal,
         outboundTotal: outValue.size,
         inbound: inValue !== undefined ? inValue.size - stateNode.inboundTotal : 0,
-        inboundTotal: inValue !== undefined ? inValue.size : 0
+        inboundTotal: inValue !== undefined ? inValue.size : 0,
+        lastSeen: Math.max(outValue.lastSeen, inValue !== undefined ? inValue.lastSeen : 0)
       };
     } else {
       return {
@@ -163,9 +173,51 @@ class MainWindow extends React.Component {
         outbound: 0,
         outboundTotal: outValue.size,
         inbound: 0,
-        inboundTotal: inValue !== undefined ? inValue.size : 0
+        inboundTotal: inValue !== undefined ? inValue.size : 0,
+        lastSeen: Math.max(outValue.lastSeen, inValue !== undefined ? inValue.lastSeen : 0)
       };
     }
+  };
+
+  lookup = (ip) => {
+    if (this.countryMap.has(ip)) {
+      const countryCode = this.countryMap.get(ip);
+      if (typeof countryCode === 'number' && isFinite(countryCode)) {
+        if (countryCode > 0) {
+          this.countryMap.set(ip, countryCode - 1);
+          return undefined;
+        }
+      } else {
+        return countryCode;
+      }
+    }
+    this.countryMap.set(ip, 15);
+
+    const init = {
+      method: 'GET'
+    };
+    fetch('http://ip-api.com/json/' + ip + '.1', init)
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        this.countryMap.set(ip, res.countryCode);
+      })
+      .catch(() => {});
+
+    return undefined;
+  };
+
+  showIP = (text) => {
+    const partialIP = text.key.substr(0, text.key.lastIndexOf('.'));
+    const countryCode = this.lookup(partialIP);
+    if (countryCode === undefined) {
+      return text.key;
+    }
+    return (
+      <span>
+        <ReactCountryFlag countryCode={countryCode} svg /> {text.key}
+      </span>
+    );
   };
 
   showOutbound = (text) => {
@@ -309,18 +361,28 @@ class MainWindow extends React.Component {
                 />
               </Card>
             </Col>
+            <Col className="content-col" md={6} lg={4}>
+              <Card className="content-card">
+                <Statistic
+                  prefix={<SettingOutlined />}
+                  title="Configure"
+                  value=":18080"
+                  valueStyle={{ color: '#00000073' }}
+                />
+              </Card>
+            </Col>
           </Row>
           <Row gutter={16}>
             <Col className="content-col-table" span={12}>
               <Table dataSource={this.state.local} pagination={false} size="middle">
-                <Column title="Source" key="source" align="left" dataIndex="key" />
+                <Column title="Source" key="source" align="left" render={this.showIP} />
                 <Column title="Outbound" key="outbound" align="center" render={this.showOutbound} width={200} />
                 <Column title="Inbound" key="inbound" align="center" render={this.showInbound} width={200} />
               </Table>
             </Col>
             <Col className="content-col-table" span={12}>
               <Table dataSource={this.state.remote} pagination={false} size="middle">
-                <Column title="Destination" key="source" align="left" dataIndex="key" />
+                <Column title="Destination" key="source" align="left" render={this.showIP} />
                 <Column title="Outbound" key="outbound" align="center" render={this.showOutbound} width={200} />
                 <Column title="Inbound" key="inbound" align="center" render={this.showInbound} width={200} />
               </Table>
@@ -332,6 +394,7 @@ class MainWindow extends React.Component {
   }
 
   componentDidMount() {
+    this.countryMap = new Map();
     this.updateData();
     this.timer = setInterval(this.updateData, 1000);
   }
