@@ -8,6 +8,10 @@
   z-index: 100;
 }
 
+.header-a {
+  display: flex;
+}
+
 .header-icon {
   display: inline-block;
   margin-right: 18px;

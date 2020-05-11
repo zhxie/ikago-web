@@ -277,7 +277,9 @@ class MainWindow extends React.Component {
     return (
       <Layout>
         <Header className="header">
-          <img className="header-icon" src={logo} alt="icon" />
+          <a className="header-a" href="https://github.com/zhxie/ikago">
+            <img className="header-icon" src={logo} alt="icon" />
+          </a>
           <p className="header-title">{this.state.name}</p>
           <p className="header-subtitle">{this.state.version}</p>
         </Header>
