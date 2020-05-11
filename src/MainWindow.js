@@ -64,12 +64,12 @@ class MainWindow extends React.Component {
         // Nodes
         let localNodes = [];
         for (let node in res.monitor.local.out) {
-          if (localNodes.find((ele) => ele.key === node) === undefined) {
+          if (localNodes.find((ele) => ele === node) === undefined) {
             localNodes.push(node);
           }
         }
         for (let node in res.monitor.local.in) {
-          if (localNodes.find((ele) => ele.key === node) === undefined) {
+          if (localNodes.find((ele) => ele === node) === undefined) {
             localNodes.push(node);
           }
         }
@@ -77,10 +77,10 @@ class MainWindow extends React.Component {
         for (let node in localNodes) {
           local.push(
             this.convertNode(
-              this.state.local.find((ele) => ele.key === node),
-              node,
-              res.monitor.local.out[node],
-              res.monitor.local.in[node]
+              this.state.local.find((ele) => ele.key === localNodes[node]),
+              localNodes[node],
+              res.monitor.local.out[localNodes[node]],
+              res.monitor.local.in[localNodes[node]]
             )
           );
         }
@@ -90,12 +90,12 @@ class MainWindow extends React.Component {
 
         let remoteNodes = [];
         for (let node in res.monitor.remote.out) {
-          if (remoteNodes.find((ele) => ele.key === node) === undefined) {
+          if (remoteNodes.find((ele) => ele === node) === undefined) {
             remoteNodes.push(node);
           }
         }
         for (let node in res.monitor.remote.in) {
-          if (remoteNodes.find((ele) => ele.key === node) === undefined) {
+          if (remoteNodes.find((ele) => ele === node) === undefined) {
             remoteNodes.push(node);
           }
         }
@@ -103,10 +103,10 @@ class MainWindow extends React.Component {
         for (let node in remoteNodes) {
           remote.push(
             this.convertNode(
-              this.state.remote.find((ele) => ele.key === node),
-              node,
-              res.monitor.remote.out[node],
-              res.monitor.remote.in[node]
+              this.state.remote.find((ele) => ele.key === remoteNodes[node]),
+              remoteNodes[node],
+              res.monitor.remote.out[remoteNodes[node]],
+              res.monitor.remote.in[remoteNodes[node]]
             )
           );
         }
@@ -222,7 +222,6 @@ class MainWindow extends React.Component {
     fetch('http://ip-api.com/json/' + ip + '.1', init)
       .then((res) => res.json())
       .then((res) => {
-        console.log(res);
         this.countryMap.set(ip, res.countryCode);
       })
       .catch(() => {});
