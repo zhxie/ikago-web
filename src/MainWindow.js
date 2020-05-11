@@ -62,8 +62,19 @@ class MainWindow extends React.Component {
         }
 
         // Nodes
-        let local = [];
+        let localNodes = [];
         for (let node in res.monitor.local.out) {
+          if (localNodes.find((ele) => ele.key === node) === undefined) {
+            localNodes.push(node);
+          }
+        }
+        for (let node in res.monitor.local.in) {
+          if (localNodes.find((ele) => ele.key === node) === undefined) {
+            localNodes.push(node);
+          }
+        }
+        let local = [];
+        for (let node in localNodes) {
           local.push(
             this.convertNode(
               this.state.local.find((ele) => ele.key === node),
@@ -76,8 +87,20 @@ class MainWindow extends React.Component {
         local.sort((first, second) => {
           return second.lastSeen - first.lastSeen;
         });
-        let remote = [];
+
+        let remoteNodes = [];
         for (let node in res.monitor.remote.out) {
+          if (remoteNodes.find((ele) => ele.key === node) === undefined) {
+            remoteNodes.push(node);
+          }
+        }
+        for (let node in res.monitor.remote.in) {
+          if (remoteNodes.find((ele) => ele.key === node) === undefined) {
+            remoteNodes.push(node);
+          }
+        }
+        let remote = [];
+        for (let node in remoteNodes) {
           remote.push(
             this.convertNode(
               this.state.remote.find((ele) => ele.key === node),
@@ -161,20 +184,20 @@ class MainWindow extends React.Component {
     if (stateNode !== undefined) {
       return {
         key: key,
-        outbound: outValue.size - stateNode.outboundTotal,
-        outboundTotal: outValue.size,
+        outbound: outValue !== undefined ? outValue.size : 0 - stateNode.outboundTotal,
+        outboundTotal: outValue !== undefined ? outValue.size : 0,
         inbound: inValue !== undefined ? inValue.size - stateNode.inboundTotal : 0,
         inboundTotal: inValue !== undefined ? inValue.size : 0,
-        lastSeen: Math.max(outValue.lastSeen, inValue !== undefined ? inValue.lastSeen : 0)
+        lastSeen: Math.max(outValue !== undefined ? outValue.lastSeen : 0, inValue !== undefined ? inValue.lastSeen : 0)
       };
     } else {
       return {
         key: key,
         outbound: 0,
-        outboundTotal: outValue.size,
+        outboundTotal: outValue !== undefined ? outValue.size : 0,
         inbound: 0,
         inboundTotal: inValue !== undefined ? inValue.size : 0,
-        lastSeen: Math.max(outValue.lastSeen, inValue !== undefined ? inValue.lastSeen : 0)
+        lastSeen: Math.max(outValue !== undefined ? outValue.lastSeen : 0, inValue !== undefined ? inValue.lastSeen : 0)
       };
     }
   };
