@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/ikago-web/precache-manifest.2e9795238807c693cfc9757dc1eebf11.js"
+  "/ikago-web/precache-manifest.864cb34166894bb967a4534dd3de6807.js"
 );
 
 self.addEventListener('message', (event) => {
