@@ -18,6 +18,8 @@ const { Column } = Table;
 
 class MainWindow extends React.Component {
   state = {
+    // Options
+    showTotal: false,
     // Header
     name: 'IkaGo Web',
     version: '',
@@ -26,10 +28,8 @@ class MainWindow extends React.Component {
     time: 0,
     outbound: 0,
     outboundTotal: 0,
-    outboundShowTotal: false,
     inbound: 0,
     inboundTotal: 0,
-    inboundShowTotal: false,
     // Nodes
     local: [],
     remote: []
@@ -243,7 +243,7 @@ class MainWindow extends React.Component {
   };
 
   showOutbound = (text) => {
-    if (this.state.outboundShowTotal) {
+    if (this.state.showTotal) {
       return (
         (Math.floor(this.convertSize(text.outboundTotal) * 10) / 10).toFixed(1) +
         ' ' +
@@ -260,7 +260,7 @@ class MainWindow extends React.Component {
   };
 
   showInbound = (text) => {
-    if (this.state.inboundShowTotal) {
+    if (this.state.showTotal) {
       return (
         (Math.floor(this.convertSize(text.inboundTotal) * 10) / 10).toFixed(1) +
         ' ' +
@@ -330,7 +330,7 @@ class MainWindow extends React.Component {
                 hoverable
                 onClick={() => {
                   this.setState({
-                    outboundShowTotal: !this.state.outboundShowTotal
+                    showTotal: !this.state.showTotal
                   });
                 }}
               >
@@ -338,7 +338,7 @@ class MainWindow extends React.Component {
                   precision={1}
                   prefix={<ArrowUpOutlined />}
                   suffix={(() => {
-                    if (this.state.outboundShowTotal) {
+                    if (this.state.showTotal) {
                       return this.mapSizeUnit(this.state.outboundTotal);
                     } else {
                       return this.mapSizeUnit(this.state.outbound) + '/s';
@@ -346,7 +346,7 @@ class MainWindow extends React.Component {
                   })()}
                   title="Outbound"
                   value={(() => {
-                    if (this.state.outboundShowTotal) {
+                    if (this.state.showTotal) {
                       return this.convertSize(this.state.outboundTotal);
                     } else {
                       return this.convertSize(this.state.outbound);
@@ -360,7 +360,7 @@ class MainWindow extends React.Component {
                 hoverable
                 onClick={() => {
                   this.setState({
-                    inboundShowTotal: !this.state.inboundShowTotal
+                    showTotal: !this.state.showTotal
                   });
                 }}
               >
@@ -368,7 +368,7 @@ class MainWindow extends React.Component {
                   precision={1}
                   prefix={<ArrowDownOutlined />}
                   suffix={(() => {
-                    if (this.state.inboundShowTotal) {
+                    if (this.state.showTotal) {
                       return this.mapSizeUnit(this.state.inboundTotal);
                     } else {
                       return this.mapSizeUnit(this.state.inbound) + '/s';
@@ -376,7 +376,7 @@ class MainWindow extends React.Component {
                   })()}
                   title="Inbound"
                   value={(() => {
-                    if (this.state.inboundShowTotal) {
+                    if (this.state.showTotal) {
                       return this.convertSize(this.state.inboundTotal);
                     } else {
                       return this.convertSize(this.state.inbound);
