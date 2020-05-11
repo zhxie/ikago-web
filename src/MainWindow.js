@@ -184,7 +184,7 @@ class MainWindow extends React.Component {
     if (stateNode !== undefined) {
       return {
         key: key,
-        outbound: outValue !== undefined ? outValue.size : 0 - stateNode.outboundTotal,
+        outbound: outValue !== undefined ? outValue.size - stateNode.outboundTotal : 0,
         outboundTotal: outValue !== undefined ? outValue.size : 0,
         inbound: inValue !== undefined ? inValue.size - stateNode.inboundTotal : 0,
         inboundTotal: inValue !== undefined ? inValue.size : 0,
