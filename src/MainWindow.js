@@ -69,10 +69,10 @@ class MainWindow extends React.Component {
     // Overall
     active: false,
     time: 0,
-    outbound: 0,
-    outboundTotal: 0,
-    inbound: 0,
-    inboundTotal: 0,
+    outboundSize: 0,
+    outboundSizeTotal: 0,
+    inboundSize: 0,
+    inboundSizeTotal: 0,
     // Nodes
     local: [],
     remote: []
@@ -86,22 +86,22 @@ class MainWindow extends React.Component {
       .then((res) => res.json())
       .then((res) => {
         // Overall
-        let outboundTotal = 0;
+        let outboundSizeTotal = 0;
         for (let src in res.monitor.local.out) {
-          outboundTotal = outboundTotal + res.monitor.local.out[src].size;
+          outboundSizeTotal = outboundSizeTotal + res.monitor.local.out[src].size;
         }
-        let outbound = 0;
-        if (this.state.outboundTotal !== 0) {
-          outbound = outboundTotal - this.state.outboundTotal;
+        let outboundSize = 0;
+        if (this.state.outboundSizeTotal !== 0) {
+          outboundSize = outboundSizeTotal - this.state.outboundSizeTotal;
         }
 
-        let inboundTotal = 0;
+        let inboundSizeTotal = 0;
         for (let src in res.monitor.local.in) {
-          inboundTotal = inboundTotal + res.monitor.local.in[src].size;
+          inboundSizeTotal = inboundSizeTotal + res.monitor.local.in[src].size;
         }
-        let inbound = 0;
-        if (this.state.inboundTotal !== 0) {
-          inbound = inboundTotal - this.state.inboundTotal;
+        let inboundSize = 0;
+        if (this.state.inboundSizeTotal !== 0) {
+          inboundSize = inboundSizeTotal - this.state.inboundSizeTotal;
         }
 
         // Nodes
@@ -166,11 +166,11 @@ class MainWindow extends React.Component {
           name: res.name,
           version: res.version,
           active: true,
-          time: res.time,
-          outbound: outbound,
-          outboundTotal: outboundTotal,
-          inbound: inbound,
-          inboundTotal: inboundTotal,
+          time: res.time !== undefined ? res.time : 0,
+          outboundSize: outboundSize,
+          outboundSizeTotal: outboundSizeTotal,
+          inboundSize: inboundSize,
+          inboundSizeTotal: inboundSizeTotal,
           local: local,
           remote: remote
         });
@@ -190,10 +190,10 @@ class MainWindow extends React.Component {
           version: '',
           active: false,
           time: 0,
-          outbound: 0,
-          outboundTotal: 0,
-          inbound: 0,
-          inboundTotal: 0,
+          outboundSize: 0,
+          outboundSizeTotal: 0,
+          inboundSize: 0,
+          inboundSizeTotal: 0,
           local: [],
           remote: []
         });
@@ -247,19 +247,19 @@ class MainWindow extends React.Component {
     if (stateNode !== undefined) {
       return {
         key: key,
-        outbound: outValue !== undefined ? outValue.size - stateNode.outboundTotal : 0,
-        outboundTotal: outValue !== undefined ? outValue.size : 0,
-        inbound: inValue !== undefined ? inValue.size - stateNode.inboundTotal : 0,
-        inboundTotal: inValue !== undefined ? inValue.size : 0,
+        outboundSize: outValue !== undefined ? outValue.size - stateNode.outboundSizeTotal : 0,
+        outboundSizeTotal: outValue !== undefined ? outValue.size : 0,
+        inboundSize: inValue !== undefined ? inValue.size - stateNode.inboundSizeTotal : 0,
+        inboundSizeTotal: inValue !== undefined ? inValue.size : 0,
         lastSeen: Math.max(outValue !== undefined ? outValue.lastSeen : 0, inValue !== undefined ? inValue.lastSeen : 0)
       };
     } else {
       return {
         key: key,
-        outbound: 0,
-        outboundTotal: outValue !== undefined ? outValue.size : 0,
-        inbound: 0,
-        inboundTotal: inValue !== undefined ? inValue.size : 0,
+        outboundSize: 0,
+        outboundSizeTotal: outValue !== undefined ? outValue.size : 0,
+        inboundSize: 0,
+        inboundSizeTotal: inValue !== undefined ? inValue.size : 0,
         lastSeen: Math.max(outValue !== undefined ? outValue.lastSeen : 0, inValue !== undefined ? inValue.lastSeen : 0)
       };
     }
@@ -308,15 +308,15 @@ class MainWindow extends React.Component {
   showOutbound = (text) => {
     if (this.state.showTotal) {
       return (
-        (Math.floor(this.convertSize(text.outboundTotal) * 10) / 10).toFixed(1) +
+        (Math.floor(this.convertSize(text.outboundSizeTotal) * 10) / 10).toFixed(1) +
         ' ' +
-        this.mapSizeUnit(text.outboundTotal)
+        this.mapSizeUnit(text.outboundSizeTotal)
       );
     } else {
       return (
-        (Math.floor(this.convertSize(text.outbound) * 10) / 10).toFixed(1) +
+        (Math.floor(this.convertSize(text.outboundSize) * 10) / 10).toFixed(1) +
         ' ' +
-        this.mapSizeUnit(text.outbound) +
+        this.mapSizeUnit(text.outboundSize) +
         '/s'
       );
     }
@@ -325,13 +325,16 @@ class MainWindow extends React.Component {
   showInbound = (text) => {
     if (this.state.showTotal) {
       return (
-        (Math.floor(this.convertSize(text.inboundTotal) * 10) / 10).toFixed(1) +
+        (Math.floor(this.convertSize(text.inboundSizeTotal) * 10) / 10).toFixed(1) +
         ' ' +
-        this.mapSizeUnit(text.inboundTotal)
+        this.mapSizeUnit(text.inboundSizeTotal)
       );
     } else {
       return (
-        (Math.floor(this.convertSize(text.inbound) * 10) / 10).toFixed(1) + ' ' + this.mapSizeUnit(text.inbound) + '/s'
+        (Math.floor(this.convertSize(text.inboundSize) * 10) / 10).toFixed(1) +
+        ' ' +
+        this.mapSizeUnit(text.inboundSize) +
+        '/s'
       );
     }
   };
@@ -402,17 +405,17 @@ class MainWindow extends React.Component {
                   prefix={<ArrowUpOutlined />}
                   suffix={(() => {
                     if (this.state.showTotal) {
-                      return this.mapSizeUnit(this.state.outboundTotal);
+                      return this.mapSizeUnit(this.state.outboundSizeTotal);
                     } else {
-                      return this.mapSizeUnit(this.state.outbound) + '/s';
+                      return this.mapSizeUnit(this.state.outboundSize) + '/s';
                     }
                   })()}
                   title="Outbound"
                   value={(() => {
                     if (this.state.showTotal) {
-                      return this.convertSize(this.state.outboundTotal);
+                      return this.convertSize(this.state.outboundSizeTotal);
                     } else {
-                      return this.convertSize(this.state.outbound);
+                      return this.convertSize(this.state.outboundSize);
                     }
                   })()}
                 />
@@ -432,17 +435,17 @@ class MainWindow extends React.Component {
                   prefix={<ArrowDownOutlined />}
                   suffix={(() => {
                     if (this.state.showTotal) {
-                      return this.mapSizeUnit(this.state.inboundTotal);
+                      return this.mapSizeUnit(this.state.inboundSizeTotal);
                     } else {
-                      return this.mapSizeUnit(this.state.inbound) + '/s';
+                      return this.mapSizeUnit(this.state.inboundSize) + '/s';
                     }
                   })()}
                   title="Inbound"
                   value={(() => {
                     if (this.state.showTotal) {
-                      return this.convertSize(this.state.inboundTotal);
+                      return this.convertSize(this.state.inboundSizeTotal);
                     } else {
-                      return this.convertSize(this.state.inbound);
+                      return this.convertSize(this.state.inboundSize);
                     }
                   })()}
                 />
@@ -483,15 +486,15 @@ class MainWindow extends React.Component {
             <Col className="content-col-table" span={12}>
               <Table dataSource={this.state.local} pagination={false} size="middle">
                 <Column title="Source" key="source" align="left" render={this.showIP} />
-                <Column title="Outbound" key="outbound" align="center" render={this.showOutbound} width={200} />
-                <Column title="Inbound" key="inbound" align="center" render={this.showInbound} width={200} />
+                <Column title="Outbound" key="outboundSize" align="center" render={this.showOutbound} width={200} />
+                <Column title="Inbound" key="inboundSize" align="center" render={this.showInbound} width={200} />
               </Table>
             </Col>
             <Col className="content-col-table" span={12}>
               <Table dataSource={this.state.remote} pagination={false} size="middle">
                 <Column title="Destination" key="source" align="left" render={this.showIP} />
-                <Column title="Outbound" key="outbound" align="center" render={this.showOutbound} width={200} />
-                <Column title="Inbound" key="inbound" align="center" render={this.showInbound} width={200} />
+                <Column title="Outbound" key="outboundSize" align="center" render={this.showOutbound} width={200} />
+                <Column title="Inbound" key="inboundSize" align="center" render={this.showInbound} width={200} />
               </Table>
             </Col>
           </Row>
