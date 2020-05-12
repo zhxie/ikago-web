@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Row, Col, Card, Statistic, Form, Table, message } from 'antd';
+import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, message } from 'antd';
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -16,13 +16,52 @@ import logo from './assets/images/logo.png';
 const { Header, Content } = Layout;
 const { Column } = Table;
 
+const ConfigurationForm = ({ visible, onOk, onCancel, initialValues }) => {
+  const [form] = Form.useForm();
+  return (
+    <Modal
+      visible={visible}
+      title="Configuration"
+      okText="Save"
+      cancelText="Cancel"
+      onCancel={onCancel}
+      onOk={() => {
+        form
+          .validateFields()
+          .then((values) => {
+            onOk(values);
+          })
+          .catch(() => {});
+      }}
+    >
+      <Form form={form} layout="vertical" name="configuration" initialValues={initialValues}>
+        <Form.Item
+          name="path"
+          label="IkaGo Path"
+          rules={[{ required: true, message: 'Please input the path of IkaGo.' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item name="showTotal" label="Data Presentation Mode">
+          <Radio.Group>
+            <Radio value={false}>Current</Radio>
+            <Radio value={true}>Total</Radio>
+          </Radio.Group>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
 class MainWindow extends React.Component {
   state = {
     // Status
     offline: false,
     online: false,
     // Options
+    configure: false,
     path: 'localhost:18080',
+    showPacket: false,
     showTotal: false,
     // Header
     name: 'IkaGo Web',
@@ -410,14 +449,34 @@ class MainWindow extends React.Component {
               </Card>
             </Col>
             <Col className="content-col" md={6} lg={4}>
-              <Card className="content-card">
-                <Statistic
-                  prefix={<SettingOutlined />}
-                  title="Configure"
-                  value={this.convertPath(this.state.path)}
-                  valueStyle={{ color: '#00000073' }}
-                />
+              <Card
+                hoverable
+                onClick={() => {
+                  this.setState({
+                    configure: true
+                  });
+                }}
+              >
+                <Statistic prefix={<SettingOutlined />} title="Configure" value={this.convertPath(this.state.path)} />
               </Card>
+              <ConfigurationForm
+                visible={this.state.configure}
+                onOk={(values) => {
+                  this.setState({
+                    offline: this.state.path !== values.path ? false : this.state.offline,
+                    online: this.state.path !== values.path ? false : this.state.online,
+                    configure: false,
+                    path: values.path,
+                    showTotal: values.showTotal
+                  });
+                }}
+                onCancel={() => {
+                  this.setState({
+                    configure: false
+                  });
+                }}
+                initialValues={{ path: this.state.path, showTotal: this.state.showTotal }}
+              />
             </Col>
           </Row>
           <Row gutter={16}>
