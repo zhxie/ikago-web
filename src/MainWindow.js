@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Row, Col, Card, Statistic, Table } from 'antd';
+import { Layout, Row, Col, Card, Statistic, Form, Table, message } from 'antd';
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -18,7 +18,11 @@ const { Column } = Table;
 
 class MainWindow extends React.Component {
   state = {
+    // Status
+    offline: false,
+    online: false,
     // Options
+    path: 'localhost:18080',
     showTotal: false,
     // Header
     name: 'IkaGo Web',
@@ -39,7 +43,7 @@ class MainWindow extends React.Component {
     const init = {
       method: 'GET'
     };
-    return fetch('http://localhost:18080', init)
+    return fetch('http://' + this.state.path, init)
       .then((res) => res.json())
       .then((res) => {
         // Overall
@@ -114,7 +118,12 @@ class MainWindow extends React.Component {
           return second.lastSeen - first.lastSeen;
         });
 
+        if (!this.state.online) {
+          message.success('Connect to IkaGo (' + this.state.path + ').');
+        }
         this.setState({
+          offline: false,
+          online: true,
           name: res.name,
           version: res.version,
           active: true,
@@ -127,9 +136,17 @@ class MainWindow extends React.Component {
           remote: remote
         });
       })
-      .catch((e) => {
-        console.error(e);
+      .catch(() => {
+        if (!this.state.offline) {
+          if (!this.state.online) {
+            message.error('Cannot connect to IkaGo (' + this.state.path + ').');
+          } else {
+            message.error('Disconnect from IkaGo (' + this.state.path + ').');
+          }
+        }
         this.setState({
+          offline: true,
+          online: false,
           name: 'IkaGo Web',
           version: '',
           active: false,
@@ -142,6 +159,13 @@ class MainWindow extends React.Component {
           remote: []
         });
       });
+  };
+
+  convertPath = (path) => {
+    if (path.lastIndexOf(':') === -1) {
+      return ':80';
+    }
+    return path.substring(path.lastIndexOf(':'));
   };
 
   convertTime = (time) => {
@@ -390,7 +414,7 @@ class MainWindow extends React.Component {
                 <Statistic
                   prefix={<SettingOutlined />}
                   title="Configure"
-                  value=":18080"
+                  value={this.convertPath(this.state.path)}
                   valueStyle={{ color: '#00000073' }}
                 />
               </Card>
