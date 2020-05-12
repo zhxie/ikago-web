@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, message } from 'antd';
+import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, Tooltip, message } from 'antd';
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -75,14 +75,16 @@ class MainWindow extends React.Component {
     inboundSizeTotal: 0,
     // Nodes
     local: [],
-    remote: []
+    remote: [],
+    // DNS
+    dns: new Map()
   };
 
   updateData = () => {
     const init = {
       method: 'GET'
     };
-    return fetch('http://' + this.state.path, init)
+    fetch('http://' + this.state.path, init)
       .then((res) => res.json())
       .then((res) => {
         // Overall
@@ -198,6 +200,19 @@ class MainWindow extends React.Component {
           remote: []
         });
       });
+
+    // DNS
+    fetch('http://' + (this.state.path + '/dns').replace('//', '/'), init)
+      .then((res) => res.json())
+      .then((res) => {
+        let dns = new Map();
+        for (let i in res) {
+          dns.set(res[i].ip, res[i].name);
+        }
+        console.log(dns);
+        this.setState({ dns: dns });
+      })
+      .catch(() => {});
   };
 
   convertPath = (path) => {
@@ -295,12 +310,17 @@ class MainWindow extends React.Component {
   showIP = (text) => {
     const partialIP = text.key.substr(0, text.key.lastIndexOf('.'));
     const countryCode = this.lookup(partialIP);
+    const name = this.state.dns.get(text.key);
     if (countryCode === undefined) {
+      if (name !== undefined) {
+        return <Tooltip title={text.key}>{name}</Tooltip>;
+      }
       return text.key;
     }
     return (
       <span>
-        <ReactCountryFlag countryCode={countryCode} svg /> {text.key}
+        <ReactCountryFlag countryCode={countryCode} svg />{' '}
+        {name !== undefined ? <Tooltip title={text.key}>{name}</Tooltip> : text.key}
       </span>
     );
   };
