@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, Tooltip, message } from 'antd';
+import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, message } from 'antd';
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -185,9 +185,16 @@ class MainWindow extends React.Component {
           if (!this.state.inactive) {
             if (!this.state.active) {
               message.error('Cannot connect to IkaGo (' + path + ').');
-              // TODO: Link to common configuration of IkaGo
+              message.info(
+                <span>
+                  {'If you have not used IkaGo yet, you can get it '}
+                  <a href="https://github.com/zhxie/ikago">here</a>
+                  {'.'}
+                </span>,
+                6
+              );
             } else {
-              message.error('Disconnect from IkaGo (' + path + ').');
+              message.warn('Disconnect from IkaGo (' + path + ').');
             }
           }
           this.setState({
