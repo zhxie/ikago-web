@@ -79,11 +79,18 @@ class MainWindow extends React.Component {
     dns: new Map()
   };
 
+  constructor(props) {
+    super(props);
+    this.countryMap = new Map();
+  }
+
   updateData = () => {
+    const path = this.state.path;
+
     const init = {
       method: 'GET'
     };
-    fetch('http://' + this.state.path, init)
+    fetch('http://' + path, init)
       .then((res) => res.json())
       .then((res) => {
         // Overall
@@ -158,59 +165,63 @@ class MainWindow extends React.Component {
           return second.lastSeen - first.lastSeen;
         });
 
-        if (!this.state.active) {
-          message.success('Connect to ' + res.name + ' (' + this.state.path + ').');
+        if (this.state.path === path) {
+          if (!this.state.active) {
+            message.success('Connect to ' + res.name + ' (' + path + ').');
+          }
+          this.setState({
+            name: res.name,
+            version: res.version,
+            active: true,
+            inactive: false,
+            time: res.time || 0,
+            outboundSize: outboundSize,
+            outboundSizeTotal: outboundSizeTotal,
+            inboundSize: inboundSize,
+            inboundSizeTotal: inboundSizeTotal,
+            local: local,
+            remote: remote
+          });
         }
-        this.setState({
-          offline: false,
-          online: true,
-          name: res.name,
-          version: res.version,
-          active: true,
-          time: res.time !== undefined ? res.time : 0,
-          outboundSize: outboundSize,
-          outboundSizeTotal: outboundSizeTotal,
-          inboundSize: inboundSize,
-          inboundSizeTotal: inboundSizeTotal,
-          local: local,
-          remote: remote
-        });
       })
       .catch(() => {
-        if (!this.state.inactive) {
-          if (!this.state.active) {
-            message.error('Cannot connect to IkaGo (' + this.state.path + ').');
-            // TODO: Link to common configuration of IkaGo
-          } else {
-            message.error('Disconnect from IkaGo (' + this.state.path + ').');
+        if (this.state.path === path) {
+          if (!this.state.inactive) {
+            if (!this.state.active) {
+              message.error('Cannot connect to IkaGo (' + path + ').');
+              // TODO: Link to common configuration of IkaGo
+            } else {
+              message.error('Disconnect from IkaGo (' + path + ').');
+            }
           }
+          this.setState({
+            name: 'IkaGo Web',
+            version: '',
+            active: false,
+            inactive: true,
+            time: 0,
+            outboundSize: 0,
+            outboundSizeTotal: 0,
+            inboundSize: 0,
+            inboundSizeTotal: 0,
+            local: [],
+            remote: []
+          });
         }
-        this.setState({
-          offline: true,
-          online: false,
-          name: 'IkaGo Web',
-          version: '',
-          active: false,
-          time: 0,
-          outboundSize: 0,
-          outboundSizeTotal: 0,
-          inboundSize: 0,
-          inboundSizeTotal: 0,
-          local: [],
-          remote: []
-        });
       });
 
     // DNS
-    fetch('http://' + (this.state.path + '/dns').replace('//', '/'), init)
+    fetch('http://' + (path + '/dns').replace('//', '/'), init)
       .then((res) => res.json())
       .then((res) => {
         let dns = new Map();
         for (let i in res) {
           dns.set(res[i].ip, res[i].name);
         }
-        console.log(dns);
-        this.setState({ dns: dns });
+
+        if (this.state.path === path) {
+          this.setState({ dns: dns });
+        }
       })
       .catch(() => {});
   };
@@ -489,6 +500,8 @@ class MainWindow extends React.Component {
               <ConfigurationForm
                 visible={this.state.configure}
                 onOk={(values) => {
+                  localStorage.setItem('path', values.path);
+                  localStorage.setItem('showTotal', values.showTotal ? 'true' : 'false');
                   this.setState({
                     configure: false,
                     path: values.path,
@@ -528,8 +541,10 @@ class MainWindow extends React.Component {
   }
 
   componentDidMount() {
-    this.countryMap = new Map();
-    this.updateData();
+    this.setState({
+      path: localStorage.getItem('path') || 'localhost:18080',
+      showTotal: localStorage.getItem('show') === 'true' ? true : false
+    });
     this.timer = setInterval(this.updateData, 1000);
   }
 
