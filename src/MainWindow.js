@@ -126,18 +126,16 @@ class MainWindow extends React.Component {
         }
         let local = [];
         for (let node in localNodes) {
-          local.push(
-            this.convertNode(
-              this.state.local.find((ele) => ele.key === localNodes[node]),
-              localNodes[node],
-              res.monitor.local.out[localNodes[node]],
-              res.monitor.local.in[localNodes[node]]
-            )
+          let convertedNode = this.convertNode(
+            this.state.local.find((ele) => ele.key === localNodes[node]),
+            localNodes[node],
+            res.monitor.local.out[localNodes[node]],
+            res.monitor.local.in[localNodes[node]]
           );
+          if (convertedNode.outboundSizeTotal > 0) {
+            local.push(convertedNode);
+          }
         }
-        local.sort((first, second) => {
-          return second.lastSeen - first.lastSeen;
-        });
 
         let remoteNodes = [];
         for (let node in res.monitor.remote.out) {
@@ -152,18 +150,16 @@ class MainWindow extends React.Component {
         }
         let remote = [];
         for (let node in remoteNodes) {
-          remote.push(
-            this.convertNode(
-              this.state.remote.find((ele) => ele.key === remoteNodes[node]),
-              remoteNodes[node],
-              res.monitor.remote.out[remoteNodes[node]],
-              res.monitor.remote.in[remoteNodes[node]]
-            )
+          let convertedNode = this.convertNode(
+            this.state.remote.find((ele) => ele.key === remoteNodes[node]),
+            remoteNodes[node],
+            res.monitor.remote.out[remoteNodes[node]],
+            res.monitor.remote.in[remoteNodes[node]]
           );
+          if (convertedNode.outboundSizeTotal > 0) {
+            remote.push(convertedNode);
+          }
         }
-        remote.sort((first, second) => {
-          return second.lastSeen - first.lastSeen;
-        });
 
         if (this.state.path === path) {
           if (!this.state.active) {
@@ -291,6 +287,53 @@ class MainWindow extends React.Component {
     }
   };
 
+  mapNodes = (nodes) => {
+    let map = new Map();
+    let mappedNodes = [];
+    for (let i in nodes) {
+      let alias = this.state.dns.get(nodes[i].key);
+
+      if (alias !== undefined) {
+        let mappedParent = map.get(alias);
+        if (mappedParent !== undefined) {
+          mappedParent.main = nodes[i].lastSeen > mappedParent.children[0].lastSeen ? nodes[i].key : mappedParent.main;
+          mappedParent.outboundSize = mappedParent.outboundSize + nodes[i].outboundSize;
+          mappedParent.outboundTotalSize = mappedParent.outboundTotalSize + nodes[i].outboundTotalSize;
+          mappedParent.inboundSize = mappedParent.inboundSize + nodes[i].inboundSize;
+          mappedParent.inboundSizeTotal = mappedParent.inboundSizeTotal + nodes[i].inboundSizeTotal;
+          mappedParent.lastSeen = Math.max(mappedParent.lastSeen, nodes[i].lastSeen);
+          mappedParent.children.push(nodes[i]);
+          mappedParent.children.sort((first, second) => {
+            return second.lastSeen - first.lastSeen;
+          });
+          map.set(alias, mappedParent);
+        } else {
+          map.set(alias, {
+            key: alias,
+            main: nodes[i].key,
+            outboundSize: nodes[i].outboundSize,
+            outboundSizeTotal: nodes[i].outboundSizeTotal,
+            inboundSize: nodes[i].inboundSize,
+            inboundSizeTotal: nodes[i].inboundSizeTotal,
+            lastSeen: nodes[i].lastSeen,
+            children: [nodes[i]]
+          });
+        }
+      } else {
+        mappedNodes.push(nodes[i]);
+      }
+    }
+
+    map.forEach((value) => {
+      mappedNodes.push(value);
+    });
+    mappedNodes.sort((first, second) => {
+      return second.lastSeen - first.lastSeen;
+    });
+
+    return mappedNodes;
+  };
+
   lookup = (ip) => {
     if (this.countryMap.has(ip)) {
       const countryCode = this.countryMap.get(ip);
@@ -318,20 +361,16 @@ class MainWindow extends React.Component {
     return undefined;
   };
 
-  showIP = (text) => {
-    const partialIP = text.key.substr(0, text.key.lastIndexOf('.'));
+  showNode = (text) => {
+    const partialIP = (text.main || text.key).substr(0, (text.main || text.key).lastIndexOf('.'));
     const countryCode = this.lookup(partialIP);
-    const name = this.state.dns.get(text.key);
     if (countryCode === undefined) {
-      if (name !== undefined) {
-        return <Tooltip title={text.key}>{name}</Tooltip>;
-      }
-      return text.key;
+      return <span className="content-table-col-span">{text.key}</span>;
     }
     return (
-      <span>
-        <ReactCountryFlag countryCode={countryCode} svg />{' '}
-        {name !== undefined ? <Tooltip title={text.key}>{name}</Tooltip> : text.key}
+      <span className="content-table-col-span">
+        <ReactCountryFlag countryCode={countryCode} svg style={{ margin: '0 4px 0 0' }} />
+        {text.key}
       </span>
     );
   };
@@ -382,7 +421,7 @@ class MainWindow extends React.Component {
         </Header>
         <Content className="content">
           <Row gutter={16}>
-            <Col className="content-col" md={6} lg={4}>
+            <Col className="content-col" xs={24} sm={12} md={12} lg={6} xl={4}>
               <Card className="content-card" hoverable>
                 <Statistic
                   prefix={(() => {
@@ -416,7 +455,7 @@ class MainWindow extends React.Component {
                 />
               </Card>
             </Col>
-            <Col className="content-col" md={6} lg={4}>
+            <Col className="content-col" xs={24} sm={12} md={12} lg={6} xl={4}>
               <Card className="content-card" hoverable>
                 <Statistic
                   precision={2}
@@ -426,7 +465,7 @@ class MainWindow extends React.Component {
                 />
               </Card>
             </Col>
-            <Col className="content-col" md={6} lg={4}>
+            <Col className="content-col" xs={24} sm={12} md={12} lg={6} xl={4}>
               <Card
                 hoverable
                 onClick={() => {
@@ -456,7 +495,7 @@ class MainWindow extends React.Component {
                 />
               </Card>
             </Col>
-            <Col className="content-col" md={6} lg={4}>
+            <Col className="content-col" xs={24} sm={12} md={12} lg={6} xl={4}>
               <Card
                 hoverable
                 onClick={() => {
@@ -486,7 +525,7 @@ class MainWindow extends React.Component {
                 />
               </Card>
             </Col>
-            <Col className="content-col" md={6} lg={4}>
+            <Col className="content-col" xs={24} sm={12} md={12} lg={6} xl={4}>
               <Card
                 hoverable
                 onClick={() => {
@@ -520,16 +559,16 @@ class MainWindow extends React.Component {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col className="content-col-table" span={12}>
-              <Table dataSource={this.state.local} pagination={false} size="middle">
-                <Column title="Source" key="source" align="left" render={this.showIP} />
+            <Col className="content-col-table" sm={24} md={24} lg={12}>
+              <Table dataSource={this.mapNodes(this.state.local)} pagination={false} size="middle">
+                <Column title="Source" key="source" align="left" render={this.showNode} />
                 <Column title="Outbound" key="outboundSize" align="center" render={this.showOutbound} width={200} />
                 <Column title="Inbound" key="inboundSize" align="center" render={this.showInbound} width={200} />
               </Table>
             </Col>
-            <Col className="content-col-table" span={12}>
-              <Table dataSource={this.state.remote} pagination={false} size="middle">
-                <Column title="Destination" key="source" align="left" render={this.showIP} />
+            <Col className="content-col-table" sm={24} md={24} lg={12}>
+              <Table dataSource={this.mapNodes(this.state.remote)} pagination={false} size="middle">
+                <Column title="Destination" key="source" align="left" render={this.showNode} />
                 <Column title="Outbound" key="outboundSize" align="center" render={this.showOutbound} width={200} />
                 <Column title="Inbound" key="inboundSize" align="center" render={this.showInbound} width={200} />
               </Table>
