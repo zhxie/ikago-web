@@ -40,7 +40,7 @@ const ConfigurationForm = ({ visible, onOk, onCancel, initialValues }) => {
           label="IkaGo Path"
           rules={[{ required: true, message: 'Please input the path of IkaGo.' }]}
         >
-          <Input />
+          <Input addonBefore="http://" />
         </Form.Item>
         <Form.Item name="showTotal" label="Data Presentation Mode">
           <Radio.Group>
