@@ -5,6 +5,7 @@ import {
   ArrowDownOutlined,
   ClockCircleOutlined,
   CheckOutlined,
+  LoadingOutlined,
   SettingOutlined,
   WarningOutlined
 } from '@ant-design/icons';
@@ -55,9 +56,6 @@ const ConfigurationForm = ({ visible, onOk, onCancel, initialValues }) => {
 
 class MainWindow extends React.Component {
   state = {
-    // Status
-    offline: false,
-    online: false,
     // Options
     configure: false,
     path: 'localhost:18080',
@@ -68,6 +66,7 @@ class MainWindow extends React.Component {
     version: '',
     // Overall
     active: false,
+    inactive: false,
     time: 0,
     outboundSize: 0,
     outboundSizeTotal: 0,
@@ -159,8 +158,8 @@ class MainWindow extends React.Component {
           return second.lastSeen - first.lastSeen;
         });
 
-        if (!this.state.online) {
-          message.success('Connect to IkaGo (' + this.state.path + ').');
+        if (!this.state.active) {
+          message.success('Connect to ' + res.name + ' (' + this.state.path + ').');
         }
         this.setState({
           offline: false,
@@ -178,9 +177,10 @@ class MainWindow extends React.Component {
         });
       })
       .catch(() => {
-        if (!this.state.offline) {
-          if (!this.state.online) {
+        if (!this.state.inactive) {
+          if (!this.state.active) {
             message.error('Cannot connect to IkaGo (' + this.state.path + ').');
+            // TODO: Link to common configuration of IkaGo
           } else {
             message.error('Disconnect from IkaGo (' + this.state.path + ').');
           }
@@ -377,21 +377,25 @@ class MainWindow extends React.Component {
                   prefix={(() => {
                     if (this.state.active) {
                       return <CheckOutlined />;
-                    } else {
+                    } else if (this.state.inactive) {
                       return <WarningOutlined />;
+                    } else {
+                      return <LoadingOutlined />;
                     }
                   })()}
                   title="Status"
                   value={(() => {
                     if (this.state.active) {
                       return 'Active';
-                    } else {
+                    } else if (this.state.inactive) {
                       return 'Inactive';
+                    } else {
+                      return 'Connecting';
                     }
                   })()}
                   valueStyle={{
                     color: (() => {
-                      if (this.state.active) {
+                      if (!this.state.inactive) {
                         return '#000';
                       } else {
                         return '#cf1322';
@@ -486,11 +490,11 @@ class MainWindow extends React.Component {
                 visible={this.state.configure}
                 onOk={(values) => {
                   this.setState({
-                    offline: this.state.path !== values.path ? false : this.state.offline,
-                    online: this.state.path !== values.path ? false : this.state.online,
                     configure: false,
                     path: values.path,
-                    showTotal: values.showTotal
+                    showTotal: values.showTotal,
+                    active: this.state.path !== values.path ? false : this.state.active,
+                    inactive: this.state.path !== values.path ? false : this.state.inactive
                   });
                 }}
                 onCancel={() => {
