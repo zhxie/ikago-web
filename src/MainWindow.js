@@ -305,7 +305,7 @@ class MainWindow extends React.Component {
         if (mappedParent !== undefined) {
           mappedParent.main = nodes[i].lastSeen > mappedParent.children[0].lastSeen ? nodes[i].key : mappedParent.main;
           mappedParent.outboundSize = mappedParent.outboundSize + nodes[i].outboundSize;
-          mappedParent.outboundTotalSize = mappedParent.outboundTotalSize + nodes[i].outboundTotalSize;
+          mappedParent.outboundSizeTotal = mappedParent.outboundSizeTotal + nodes[i].outboundSizeTotal;
           mappedParent.inboundSize = mappedParent.inboundSize + nodes[i].inboundSize;
           mappedParent.inboundSizeTotal = mappedParent.inboundSizeTotal + nodes[i].inboundSizeTotal;
           mappedParent.lastSeen = Math.max(mappedParent.lastSeen, nodes[i].lastSeen);
