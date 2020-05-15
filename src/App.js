@@ -1,7 +1,6 @@
-import React from "react";
+import React from 'react';
 
-import "antd/dist/antd.css";
-import MainWindow from "./MainWindow";
+import MainWindow from './MainWindow';
 
 function App() {
   return <MainWindow />;

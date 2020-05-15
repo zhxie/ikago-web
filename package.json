@@ -24,10 +24,10 @@
     "react-scripts": "3.4.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "react-app-rewired start",
+    "build": "cross-env GENERATE_SOURCEMAP=false react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
@@ -46,6 +46,10 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^2.2.0"
+    "babel-plugin-import": "^1.13.0",
+    "cross-env": "^7.0.2",
+    "customize-cra": "^0.9.1",
+    "gh-pages": "^2.2.0",
+    "react-app-rewired": "^2.1.6"
   }
 }
