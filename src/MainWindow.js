@@ -5,6 +5,7 @@ import {
   ArrowDownOutlined,
   ClockCircleOutlined,
   CheckOutlined,
+  HourglassOutlined,
   LoadingOutlined,
   SettingOutlined,
   WarningOutlined
@@ -72,6 +73,7 @@ class MainWindow extends React.Component {
     outboundSizeTotal: 0,
     inboundSize: 0,
     inboundSizeTotal: 0,
+    ping: -1,
     // Nodes
     local: [],
     remote: [],
@@ -175,6 +177,7 @@ class MainWindow extends React.Component {
             outboundSizeTotal: outboundSizeTotal,
             inboundSize: inboundSize,
             inboundSizeTotal: inboundSizeTotal,
+            ping: res.ping !== undefined ? res.ping : -1,
             local: local,
             remote: remote
           });
@@ -207,6 +210,7 @@ class MainWindow extends React.Component {
             outboundSizeTotal: 0,
             inboundSize: 0,
             inboundSizeTotal: 0,
+            ping: -1,
             local: [],
             remote: []
           });
@@ -529,6 +533,35 @@ class MainWindow extends React.Component {
                       return this.convertSize(this.state.inboundSize);
                     }
                   })()}
+                />
+              </Card>
+            </Col>
+            <Col className="content-col" xs={24} sm={12} md={12} lg={6} xl={4}>
+              <Card className="content-card" hoverable>
+                <Statistic
+                  prefix={<HourglassOutlined />}
+                  suffix={this.state.ping < 0 ? '' : 'ms'}
+                  title="Delay"
+                  value={(() => {
+                    if (this.state.ping === -1) {
+                      return 'N/A';
+                    } else if (this.state.ping === -2) {
+                      return 'Timeout';
+                    } else {
+                      return this.state.ping;
+                    }
+                  })()}
+                  valueStyle={{
+                    color: (() => {
+                      if (this.state.ping === -2) {
+                        return '#cf1322';
+                      } else if (this.state.ping >= 100) {
+                        return '#faad14';
+                      } else {
+                        return '#000';
+                      }
+                    })()
+                  }}
                 />
               </Card>
             </Col>
