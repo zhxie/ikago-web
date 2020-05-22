@@ -55,15 +55,7 @@
   overflow-y: auto;
 }
 
-.ant-table {
-  height: 100% !important;
-}
-
 .content-table-col-span {
   align-items: center;
   display: flex;
-}
-
-.content-table-col-p {
-  margin: 0;
 }
