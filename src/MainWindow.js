@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, message } from 'antd';
+import { Layout, Row, Col, Card, Statistic, Modal, Form, Input, Radio, Table, message, Tooltip } from 'antd';
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -347,17 +347,17 @@ class MainWindow extends React.Component {
 
   lookup = (ip) => {
     if (this.countryMap.has(ip)) {
-      const countryCode = this.countryMap.get(ip);
-      if (typeof countryCode === 'number' && isFinite(countryCode)) {
-        if (countryCode > 0) {
-          this.countryMap.set(ip, countryCode - 1);
-          return undefined;
-        }
-      } else {
-        return countryCode;
+      const country = this.countryMap.get(ip);
+      if (country.countryCode !== undefined) {
+        return country;
+      }
+
+      if (country.timeout > 0) {
+        this.countryMap.set(ip, { timeout: country.timeout - 1 });
+        return country;
       }
     }
-    this.countryMap.set(ip, 15);
+    this.countryMap.set(ip, { timeout: 15 });
 
     const init = {
       method: 'GET'
@@ -365,22 +365,24 @@ class MainWindow extends React.Component {
     fetch('http://ip-api.com/json/' + ip + '.1', init)
       .then((res) => res.json())
       .then((res) => {
-        this.countryMap.set(ip, res.countryCode);
+        this.countryMap.set(ip, { countryCode: res.countryCode, isp: res.isp });
       })
       .catch(() => {});
 
-    return undefined;
+    return this.countryMap.get(ip);
   };
 
   showNode = (text) => {
     const partialIP = (text.main || text.key).substr(0, (text.main || text.key).lastIndexOf('.'));
-    const countryCode = this.lookup(partialIP);
-    if (countryCode === undefined) {
+    const country = this.lookup(partialIP);
+    if (country.countryCode === undefined) {
       return <span className="content-table-col-span">{text.key}</span>;
     }
     return (
       <span className="content-table-col-span">
-        <ReactCountryFlag countryCode={countryCode} svg style={{ margin: '0 4px 0 0' }} />
+        <Tooltip title={country.isp}>
+          <ReactCountryFlag countryCode={country.countryCode} svg style={{ margin: '0 4px 0 0' }} />
+        </Tooltip>
         {text.key}
       </span>
     );
